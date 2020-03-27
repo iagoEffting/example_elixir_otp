@@ -1,0 +1,11 @@
+{application,bridge,
+             [{applications,[kernel,stdlib,elixir,logger]},
+              {description,"bridge"},
+              {modules,['Elixir.Bridge','Elixir.Bridge.PostalCode.DataParser',
+                        'Elixir.Bridge.PostalCode.Navigator',
+                        'Elixir.Bridge.PostalCode.Store',
+                        'Elixir.Bridge.PostalCode.Supervisor',
+                        'Elixir.Bridge.Supervisor']},
+              {registered,[]},
+              {vsn,"0.1.0"},
+              {mod,{'Elixir.Bridge',[]}}]}.
