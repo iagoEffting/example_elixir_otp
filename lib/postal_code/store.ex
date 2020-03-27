@@ -3,6 +3,7 @@ defmodule Bridge.PostalCode.Store do
   alias Bridge.PostalCode.DataParser
 
   def start_link do
+    IO.puts("==> PostalCode.Store starting ....... OK!")
     GenServer.start_link(__MODULE__, %{}, name: :postal_code_store)
   end
 
@@ -15,12 +16,6 @@ defmodule Bridge.PostalCode.Store do
   end
 
   # Callbacks
-
-  # Obtyer geolocalização pelo codigo postal
-  # Precisa ser sincrono pois indiferente de quem chamar esse método esperar a latitude e longitude como resposta
-  # primeiro valor deve ser o :reply
-  # segundo valor é o que o local que chamou vai receber como resposta
-  # terceiro valor é o novo estado no processo do GenServer
   def handle_call({:get_geolocation, postal_code}, _from, geolocation_data) do
     geolocation = Map.get(geolocation_data, postal_code)
     {:reply, geolocation, geolocation_data}

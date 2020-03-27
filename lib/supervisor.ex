@@ -2,7 +2,7 @@ defmodule Bridge.Supervisor do
   use Supervisor
 
   def start_link do
-    Supervisor.start_link(__MODULE__, [])
+    Supervisor.start_link(__MODULE__, [], name: :bridge_supervisor)
   end
 
   def init(_) do
@@ -10,6 +10,6 @@ defmodule Bridge.Supervisor do
       supervisor(Bridge.PostalCode.Supervisor, [])
     ]
 
-    supervise(children, strategy: :one_for_all)
+    supervise(children, strategy: :one_for_one)
   end
 end

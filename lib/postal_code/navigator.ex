@@ -1,31 +1,66 @@
 defmodule Bridge.PostalCode.Navigator do
+  use GenServer
+
   alias :math, as: Math
+  alias Bridge.PostalCode.Cache
   alias Bridge.PostalCode.Store
 
-  # @radius 6371 #km
-  @radius 3959
+  @radius 6371
+
+  def start_link do
+    IO.puts("==> PostalCode.Navigator starting ... OK!")
+
+    GenServer.start_link(__MODULE__, [], name: :postal_code_navigator)
+  end
+
+  def init(_) do
+    {:ok, []}
+  end
 
   def get_distance(from, to) do
-    do_get_distance(from, to)
+    GenServer.call(:postal_code_navigator, {:get_distance, from, to})
+  end
+
+  # Callbacks
+  def handle_call({:get_distance, from, to}, _from, state) do
+    distance = do_get_distance(from, to)
+    {:reply, distance, state}
   end
 
   defp do_get_distance(from, to) do
-    {lat1, long1} = get_geolocation(from)
-    {lat2, long2} = get_geolocation(to)
+    from = format_postal_code(from)
+    to = format_postal_code(to)
 
-    calculate_distance({lat1, long1}, {lat2, long2})
-  end
+    case Cache.get_distance(from, to) do
+      nil ->
+        IO.puts("=> Not use cache")
+        {lat1, long1} = get_geolocation(from)
+        {lat2, long2} = get_geolocation(to)
 
-  defp get_geolocation(postal_code) when is_binary(postal_code) do
-    Store.get_geolocation(postal_code)
-  end
+        distance = calculate_distance({lat1, long1}, {lat2, long2})
+        Cache.set_distance(from, to, distance)
+        distance
 
-  defp get_geolocation(postal_code) when is_integer(postal_code) do
-    postal_code = Integer.to_string(postal_code)
-    get_geolocation(postal_code)
+      distance ->
+        IO.puts("=> Use cache")
+        distance
+    end
   end
 
   defp get_geolocation(postal_code) do
+    Store.get_geolocation(postal_code)
+  end
+
+  defp format_postal_code(postal_code) when is_binary(postal_code) do
+    postal_code
+  end
+
+  defp format_postal_code(postal_code) when is_integer(postal_code) do
+    postal_code = Integer.to_string(postal_code)
+    format_postal_code(postal_code)
+  end
+
+  defp format_postal_code(postal_code) do
     error = "Unexpected `postal_code`, received: (#{inspect(postal_code)})"
     raise ArgumentError, error
   end
